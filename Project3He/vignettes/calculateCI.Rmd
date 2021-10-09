@@ -1,0 +1,115 @@
+---
+title: "How to calculate confidence interval"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to calculate confidence interval}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Project3He)
+```
+
+
+Use [data](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-08-25/readme.md) from [TidyTuesday](https://www.tidytuesday.com/).
+
+
+```{r, message = FALSE}
+library(here)
+library(tidyverse)
+```
+
+
+```{r}
+# tests if a directory named "data" exists locally
+if(!dir.exists(here("data"))) { dir.create(here("data")) }
+
+# saves data only once (not each time you knit a R Markdown)
+if(!file.exists(here("data","chopped.RDS"))) {
+  url_tsv <- 'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-25/chopped.tsv'
+  chopped <- readr::read_tsv(url_tsv)
+  
+  # save the file to RDS objects
+  saveRDS(chopped, file= here("data","chopped.RDS"))
+}
+```
+
+
+Read in the `.rds` dataset.
+
+
+```{r}
+chopped <- readRDS(here("data","chopped.RDS"))
+as_tibble(chopped)
+```
+
+
+As Halloween is coming up at the end of this month, the following steps will show how to create a confidence interval of the episode ratings for the episodes that were Halloween themed vs not.
+
+
+1. Remove rows that contain an `NA` in either of the two columns `episode_notes` or `episode_rating`.
+2. Add a column called `has_halloween_theme` that searches the character strings in `episode_notes` for the strings "halloween" or "Halloween". This column should contain either `TRUE` or `FALSE` depending on whether the strings were found (`TRUE`) or not (`FALSE`).
+
+```{r}
+chopped <-
+    chopped %>%
+    drop_na(c("episode_notes", "episode_rating")) %>%
+    mutate(has_halloween_theme = str_detect(episode_notes,
+                                            paste(c("halloween", "Halloween"),
+                                                  collapse = "|")))
+```
+
+
+3. Make two side-by-side boxplots along the x-axis (could be faceted or not) of the distribution of ratings in the `episode_rating` column: one for the episodes with and without the halloween theme. On top of the boxplot, plot the ratings for the two categories (hint: check out the `geom_jitter()` function in `ggplot2`).
+
+```{r}
+chopped %>%
+    ggplot(aes(x = has_halloween_theme, y = episode_rating)) +
+    stat_boxplot(geom = "errorbar", width = 0.2) +
+    geom_boxplot(aes(fill = has_halloween_theme)) +
+    geom_jitter(aes(color = has_halloween_theme), alpha = 0.6) +
+    xlab("Episodes with and without the halloween theme") +
+    ylab("Distribution of ratings") +
+    scale_fill_manual(values = c("#97ceee", "#ffd37a"),
+                      labels = c("FALSE", "TRUE"),
+                      guide = "none") +
+    scale_color_manual(values = c("#439fd3", "#f6b128"),
+                       labels = c("FALSE", "TRUE"),
+                       guide = "none") +
+    theme_bw()
+```
+
+
+4. Using the skills we have learned in the `tidyverse` and using our new S3 class (`p3_class`), calculate a 90% confidence interval of the ratings for the episodes with and without the Halloween theme.
+
+```{r}
+chopped_with <-
+    chopped %>%
+    filter(has_halloween_theme == TRUE) %>%
+    select(episode_rating)
+chopped_with <- make_p3_class(chopped_with[["episode_rating"]])
+calculate_CI(chopped_with, conf = 0.95)
+```
+
+```{r}
+chopped_without <-
+    chopped %>%
+    filter(has_halloween_theme == FALSE) %>%
+    select(episode_rating)
+chopped_without <- make_p3_class(chopped_without[["episode_rating"]])
+calculate_CI(chopped_without, conf = 0.95)
+```
+
+5. In your vignette, write 1 - 2 sentences describing what you see related to whether Halloween episodes are more highly rated than non Halloween episodes.
+
+```
+The median of rating of episodes without or with Halloween are the same, while rating of episodes without Halloween has higher Q3 and Q1 compared wtih rating of episodes with Halloween. The confidence interval of ratings of episodes with Halloween is much wider than episodes without Halloween, which is as expected since episodes with Halloween have smaller sample size. Given the data provided, it can be concluded that ratings of episodes without Halloween may be higher than episodes with Halloween. However, it may make more sense to conduct hypothesis testing to compare the values between the two groups, and also need to be cautious that the small sample size of the episodes with Halloween may not provide enough statistical power to draw conclusions.
+```

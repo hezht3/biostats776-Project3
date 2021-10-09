@@ -1,0 +1,81 @@
+---
+title: "How to compute the exponential of a number using the truncated series expansion"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to compute the exponential of a number using the truncated series expansion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Project3He)
+```
+
+
+The exponential of a number can be written as an infinite series expansion of the form
+$$
+\exp(x) = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots
+$$
+
+
+The truncated sum of terms means the sum of terms that excludes values exceeding a certain threshold value, which represents an approximation to the true exponential. The `Exp(x,k)` function computes the exponential of a number using the truncated series expansion.
+
+
+An example of the `Exp(x,k)` function:
+
+
+```{r}
+Exp(2, 5)
+```
+
+
+For a given value $x$, as $k$ increases, the value of `Exp(x,k)` function will approximate the value of `exp(x)` from base R.
+
+
+A way to show this approximation is to apply different values of $k$ to a given value of $x$.
+
+
+```{r}
+# Taylor series approximation
+# Set x = 5
+Exp(5,k=1)
+Exp(5,k=5)
+Exp(5,k=10)
+Exp(5,k=100)
+```
+
+
+```{r}
+# compared to 
+exp(5)
+```
+
+
+Another way to show this approximation is to visualize the value of the two functions for a given value of $x$ with different values of $k$.
+
+
+```{r, message = FALSE}
+require(tidyverse)
+```
+
+
+```{r}
+tibble(x = rep(5, 100)) %>%
+    mutate(k = seq(1, 100, by = 1)) %>%
+    mutate(Exp = sapply(1:100, function(x) Exp(5, x))) %>%
+    ggplot(aes(x = k, y = Exp)) +
+    geom_point(size = 2) +
+    geom_line(size = 1) +
+    geom_hline(yintercept = exp(5)) +
+    theme_bw()
+```
+
+
+As shown in the figure above, as $k$ increases, the value of $Exp(5, k)$ approximates to the value of $exp(5)$.
