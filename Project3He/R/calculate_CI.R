@@ -34,7 +34,7 @@ calculate_CI <- function(x, conf) {
                      nrow = 1,
                      ncol = 2,
                      dimnames = list("(Intercept)",
-                                     c("2.5 %", "97.5 %")))
+                                     c("lower_bound", "upper_bound")))
 
     return(output)
 }

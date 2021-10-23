@@ -96,7 +96,7 @@ chopped_with <-
     filter(has_halloween_theme == TRUE) %>%
     select(episode_rating)
 chopped_with <- make_p3_class(chopped_with[["episode_rating"]])
-calculate_CI(chopped_with, conf = 0.95)
+calculate_CI(chopped_with, conf = 0.90)
 ```
 
 ```{r}
@@ -105,7 +105,7 @@ chopped_without <-
     filter(has_halloween_theme == FALSE) %>%
     select(episode_rating)
 chopped_without <- make_p3_class(chopped_without[["episode_rating"]])
-calculate_CI(chopped_without, conf = 0.95)
+calculate_CI(chopped_without, conf = 0.90)
 ```
 
 5. In your vignette, write 1 - 2 sentences describing what you see related to whether Halloween episodes are more highly rated than non Halloween episodes.
